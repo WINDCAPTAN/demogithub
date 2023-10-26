@@ -1,10 +1,20 @@
 package View;
 
-
+import Service.NhanVienService;
+import Service.NhanVienServiceimpl;
+import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import model.NhanVien;
 
 public class NhanVienView extends javax.swing.JFrame {
 
+    private NhanVienService nhanvienService = new NhanVienServiceimpl();
+    DefaultTableModel mol = new DefaultTableModel();
+
     public NhanVienView() {
+        initComponents();
+        filltable();
     }
 
     @SuppressWarnings("unchecked")
@@ -163,14 +173,22 @@ public class NhanVienView extends javax.swing.JFrame {
 
     private void tblBangMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblBangMouseClicked
         // TODO add your handling code here:
+        int selectedIndex = tblBang.getSelectedRow();
+        if (selectedIndex >= 0) {
+            this.showNV(selectedIndex);
+        }
     }//GEN-LAST:event_tblBangMouseClicked
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
         // TODO add your handling code here:
+        addNhanVien();
+        filltable();
     }//GEN-LAST:event_btnAddActionPerformed
 
     private void btnDELETEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDELETEActionPerformed
         // TODO add your handling code here:
+        xoaNV();
+        filltable();
     }//GEN-LAST:event_btnDELETEActionPerformed
 
     public static void main(String args[]) {
@@ -206,7 +224,57 @@ public class NhanVienView extends javax.swing.JFrame {
         });
     }
 
+    void filltable() {
+        mol = (DefaultTableModel) tblBang.getModel();
+        mol.setRowCount(0);
+        for (NhanVien nv : nhanvienService.getAll()) {
+            Object rowData[] = new Object[4];
+            rowData[0] = nv.getMaNV();
+            rowData[1] = nv.getHoTen();
+            rowData[2] = nv.getMatKhau();
+            rowData[3] = nv.isVaiTro() ? "Quản Lý" : "Nhân Viên";
+            mol.addRow(rowData);
+        }
+    }
 
+    void showNV(int index) {
+        List<NhanVien> List = nhanvienService.getAll();
+        NhanVien sv = List.get(index);
+        txtma.setText(sv.getMaNV());
+        txthoten.setText(sv.getHoTen());
+        txtmatkhau.setText(sv.getMatKhau());
+        rdoTP.setSelected(sv.isVaiTro());
+        rdoNV.setSelected(!sv.isVaiTro());
+    }
+
+    private void addNhanVien() {
+        NhanVien nv = new NhanVien();
+        String MaNV = txtma.getText();
+        String hoTen = txthoten.getText();
+        String matKhau = txtmatkhau.getText();
+        boolean vt = false;
+        if (rdoTP.isSelected()) {
+            vt = true;
+        }
+        nv.setVaiTro(vt);
+        nv.setMaNV(MaNV);
+        nv.setHoTen(hoTen);
+        nv.setMatKhau(matKhau);
+        nhanvienService.add(nv);
+        JOptionPane.showMessageDialog(this, "Thêm thành công!");
+
+    }
+
+    private void xoaNV() {
+        String Id = txtma.getText();
+        if (Id.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Bạn chưa nhập mã nhân viên");
+            return;
+        } else {
+            nhanvienService.delete(Id);
+            JOptionPane.showMessageDialog(this, "Xóa thành công!");
+        }
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAdd;
     private javax.swing.JButton btnDELETE;
